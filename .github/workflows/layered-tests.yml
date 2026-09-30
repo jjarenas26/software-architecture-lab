@@ -1,0 +1,36 @@
+name: Layered Architecture Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "01-architecture-styles/01-layered/**"
+      - ".github/workflows/layered-tests.yml"
+  pull_request:
+    paths:
+      - "01-architecture-styles/01-layered/**"
+      - ".github/workflows/layered-tests.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 01-architecture-styles/01-layered
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: 01-architecture-styles/01-layered/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest -q
