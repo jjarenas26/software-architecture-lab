@@ -1,0 +1,60 @@
+name: Microservices Architecture Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "01-architecture-styles/04-microservices/**"
+      - ".github/workflows/microservices-tests.yml"
+  pull_request:
+    paths:
+      - "01-architecture-styles/04-microservices/**"
+      - ".github/workflows/microservices-tests.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 01-architecture-styles/04-microservices
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: 01-architecture-styles/04-microservices/requirements-dev.txt
+
+      - name: Install unit-test dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run unit tests
+        run: pytest -q
+
+      - name: Build and start microservices
+        run: docker compose up -d --build
+
+      - name: Wait for public Order API
+        run: |
+          for i in {1..30}; do
+            if curl --fail --silent http://localhost:8001/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          exit 1
+
+      - name: Run distributed smoke test
+        run: python smoke_test.py
+
+      - name: Show service logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Stop microservices
+        if: always()
+        run: docker compose down -v

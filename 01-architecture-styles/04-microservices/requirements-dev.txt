@@ -1,0 +1,2 @@
+-r services/order-service/requirements.txt
+pytest>=8,<10
