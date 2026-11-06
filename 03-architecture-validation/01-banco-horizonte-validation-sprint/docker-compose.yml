@@ -1,0 +1,23 @@
+services:
+  fraud-service:
+    build: ./lab/services/fraud-service
+    ports:
+      - "8102:8000"
+
+  core-service:
+    build: ./lab/services/core-service
+    ports:
+      - "8103:8000"
+
+  payment-service:
+    build: ./lab/services/payment-service
+    ports:
+      - "8101:8000"
+    environment:
+      FRAUD_SERVICE_URL: http://fraud-service:8000
+      CORE_SERVICE_URL: http://core-service:8000
+      FRAUD_TIMEOUT_SECONDS: "0.4"
+      CORE_TIMEOUT_SECONDS: "2.0"
+    depends_on:
+      - fraud-service
+      - core-service
